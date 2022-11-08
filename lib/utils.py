@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from pathlib import Path
 import shutil
+import mistune
 
 def dict_to_css(data):
     css = []
@@ -13,10 +14,10 @@ def dict_to_css(data):
     return "\n".join(css)
 
 def save(data:str, root:str, name:str):
-    root = Path(root)
+    file = Path(root)/name
+    root = file.parent
     if not root.is_dir():
         root.mkdir(parents=True, exist_ok=True)
-    file = root / name
     with open(file, "w") as f:
         f.write(data)
 
@@ -37,3 +38,11 @@ def build_attributes(data:dict):
 
 def copy(src, dst):
     shutil.copy(src, dst)
+
+def read_md_as_html(path: str):
+    html = "<!DOCTYPE html><html><head></head><body>"
+    with open(path, 'r') as f:
+        text = f.read()
+    html += mistune.markdown(text)
+    html += "</body></html>"
+    return html

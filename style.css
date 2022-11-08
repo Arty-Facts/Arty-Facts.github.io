@@ -33,3 +33,9 @@ section{
     filter: blur(0);
     transform: translateX(0);
 }
+
+/* .mdPage{
+    min-height: 100vh; 
+    min-width: 80%;
+} */
+

@@ -4,6 +4,7 @@ from lib.utils import ( dict_to_css,
                         keyword_translation, 
                         build_attributes, 
                         copy,
+                        read_md_as_html
                       )
 
 class Leaf:
@@ -80,3 +81,15 @@ class JS(Leaf):
     def build(self, build_dir):
         save(self.data, build_dir, self.name)
         return f"<script defer src={self.name}'></script>"
+
+class MD(Leaf):
+    def __init__(self, path:str, **kvarg):
+        self.path = path
+        self.kvarg = keyword_translation(kvarg)
+
+    def build(self, build_dir):
+        html_data = read_md_as_html(self.path)
+        path = self.path+".html"
+        save(html_data, build_dir, path)
+        return f"<embed src='./{path}' {build_attributes(self.kvarg)}>"
+
