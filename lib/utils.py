@@ -15,7 +15,7 @@ def dict_to_css(data):
 def save(data:str, root:str, name:str):
     root = Path(root)
     if not root.is_dir():
-        root.mkdir(parents=True)
+        root.mkdir(parents=True, exist_ok=True)
     file = root / name
     with open(file, "w") as f:
         f.write(data)

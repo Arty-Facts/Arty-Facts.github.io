@@ -18,8 +18,9 @@ jobs:
         with:
           python-version: '3.9'
           cache: 'pip' # caching pip dependencies
-      - run: source setup.sh
+      - run: pip install -r environment/requirements.txt
 
+      - run: mkdir build
       - name: Build
         run: python3 site.py
 
