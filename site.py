@@ -23,7 +23,7 @@ site = Html(
             ), 
             cls="hidden") for link, img in links], 
         Section(
-            MD("content\home.md", cls="mdPage"),
+            MD("content/home.md", cls="mdPage"),
             cls="hidden"
             )
     ),
