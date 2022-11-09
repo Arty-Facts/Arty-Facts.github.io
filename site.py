@@ -27,17 +27,27 @@ site = Html(
             cls="menu",
         ),
         Div(
-            Section(
-                MD("content/home.md", cls="mdPage"),
-                cls="hidden"),
-            *[Section(
-                A(
-                    Img(src=img),
-                    href=link
-                ),
-                cls="hidden") for link, img in links
-              ],
-            cls="content"
+            Nav(
+                Li(A(Text("Gans"), cls="active")),
+                Li(A(Text("Defusion"))),
+                Li(A(Text("Tools"), cls="active")),
+                Li(A(Text("Summury"))),
+                cls="side-menu",
+            ),
+            Div(
+                Section(
+                    MD("content/home.md", cls="mdPage"),
+                    cls="hidden"),
+                *[Section(
+                    A(
+                        Img(src=img),
+                        href=link
+                    ),
+                    cls="hidden") for link, img in links
+                ],
+                cls="content" , 
+            ),
+            cls="workspace" , 
         )
     ),
 )

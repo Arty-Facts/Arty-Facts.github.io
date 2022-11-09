@@ -1,16 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 
+* {
+    outline: 1px solid red;
+}
+
 :root {
-    --primary: #4c2374;
-    --secondary: #10303f;
-    --selected: #3e6e85;
-    --background: #55798a;
-    --text: #e3e7e9;
-  }
+    --top-menu: #3C3C3C;
+    --active: #1E1E1E;
+    --hover: #464646;
+    --hover-text: #d2d2d2;
+    --background: #1E1E1E;
+    --text: #BAC1C9;
+    --side-menu: #252526;
+}
 
 body {
     background-color: var(--background);
-    color: var(--secondary);
+    color: var(--text);
     font-family: 'Poppins', sans-serif;
     padding: 0;
     margin: 0;
@@ -43,78 +49,90 @@ section {
     transform: translateX(0);
 }
 
-/* .mdPage{
-    min-height: 100vh; 
-    min-width: 80%;
-} */
-
 nav.menu {
     list-style-type: none;
     margin: 0;
     padding: 0;
-    width: 10%;
+    top: 0;
+    margin-left: 150px;
     overflow: hidden;
-    background-color: var(--primary);
-}
-
-li {
-    float: left;
-    width: 100%;
-}
-
-/* Change the link color to #111 (black) on hover */
-li a:hover {
-    background-color: var(--selected);
-}
-
-.active {
-    background-color: var(--background);
-}
-
-
-
-nav.menu li a {
-    display: block;
-    color: #000;
-    text-align: center;
-    padding: 8px 16px;
-    text-decoration: none;
-}
-
-nav.menu li a.active {
-    background-color: var(--background);
-    color: var(--text);
-}
-
-nav.menu li a:hover:not(.active) {
-    background-color: var(--primary);
-    color: var(--text);
-}
-
-
-
-nav.menu {
+    background-color: var(--top-menu);
     width: 100%;
     height: auto;
     position: -webkit-sticky;
     position: sticky;
-    top: 0;
     z-index: 1;
 }
 
 nav.menu li a {
+    display: block;
+    color: var(--text);
+    text-align: center;
     float: left;
     padding: 15px;
+    text-decoration: none;
+}
+
+nav.menu li a.active {
+    background-color: var(--active);
+    color: var(--hover-text);
+}
+
+nav.menu li a:hover {
+    background-color: var(--hover);
+    color: var(--hover-text);
 }
 
 div.content {
-    margin-left: 0;
-}
+    /* margin-left: 10%; */
+    display: inline-block;
+    /* float: center; */
+    overflow: hidden;
+    height: 100%;
+    width: calc(100% - 150px);
 
-nav.menu li {
+}
+div.workspace {
+    /* margin-left: 10%; */
+    /* float: left; */
+    width:100%; 
+    position:relative;
+    white-space: nowrap;
+    overflow: hidden;
+
+}
+nav.side-menu {
+    display: inline-block;
+    list-style-type: none;
+    margin: 0;
+    padding: 0; 
+    width: 150px;
+    background-color: var(--side-menu);
+    /* position: fixed;   */
+    height: 100%;   
+    overflow: hidden;
     float: left;
-    width: auto;
 }
-@media screen and (max-width: 900px) {
 
+nav.side-menu li a {
+    display: block;
+    color: var(--text);
+    padding: 8px 16px;
+    text-decoration: none;
 }
+
+nav.side-menu li a.active {
+    background-color: var(--active);
+    color: var(--hover-text);
+}
+
+nav.side-menu li a:hover:not(.active) {
+    background-color: var(--side-menu);
+    color: var(--text);
+}
+nav.side-menu li a:hover {
+    background-color: var(--hover);
+    color: var(--hover-text);
+}
+
+@media screen and (max-width: 900px) {}
