@@ -6,17 +6,12 @@ from lib.utils import ( dict_to_css,
                         copy,
                         read_md_as_html
                       )
-
-class Leaf:
-    def __init__(self, data:str, **kvarg):
+class Text:
+    def __init__(self, data:str):
         self.data = data
-        self.kvarg = keyword_translation(kvarg)
 
     def build(self, build_dir):
-        return "".join((f"<{self.__class__.__name__.lower()} {build_attributes(self.kvarg)}>",
-                        self.data,
-                        f"</{self.__class__.__name__.lower()}>"))
-
+        return self.data                 
 class Node:
     def __init__(self, *components, **kvarg):
         self.components = components
@@ -24,9 +19,9 @@ class Node:
 
 
     def build(self, build_dir):
-        return "".join((f"<{self.__class__.__name__.lower()} {build_attributes(self.kvarg)}>",
-                       "".join([component.build(build_dir) for component in self.components]),
-                       f"</{self.__class__.__name__.lower()}>"))
+        return  ( f"<{self.__class__.__name__.lower()} {build_attributes(self.kvarg)}>"
+                + "".join([component.build(build_dir) for component in self.components])
+                + f"</{self.__class__.__name__.lower()}>")
 
 
 class Html(Node): 
@@ -37,17 +32,18 @@ class Html(Node):
     def build(self, build_dir:str):
         save_html("<!DOCTYPE html>"+super().build(build_dir), build_dir, self.name)
 
-
-
 class Head(Node): pass
 class Body(Node): pass
 class A(Node): pass
 class Img(Node): pass
 class Section(Node): pass
+class Ul(Node): pass
+class Li(Node): pass
+class Nav(Node): pass
+class Title(Node): pass
+class Div(Node): pass
 
-class Title(Leaf): pass
-
-class CSS_File(Leaf):
+class CSS_File:
     def __init__(self, path: str):
         self.path = path
 
@@ -56,7 +52,7 @@ class CSS_File(Leaf):
         return f"<link  rel='stylesheet' href='{self.path}'>"
 
 
-class CSS(Leaf):
+class CSS:
     def __init__(self, data: dict, name: str):
         self.data = data
         self.name = name
@@ -65,7 +61,7 @@ class CSS(Leaf):
         save(dict_to_css(self.data), build_dir, self.name)
         return f"<link  rel='stylesheet' href='{self.name}'>"
 
-class JS_File(Leaf):
+class JS_File:
     def __init__(self, path: str):
         self.path: str = path
 
@@ -73,7 +69,7 @@ class JS_File(Leaf):
         copy(self.path, build_dir)
         return f"<script defer src={self.path}></script>"
 
-class JS(Leaf):
+class JS:
     def __init__(self, data:str, path:str):
         self.data = data
         self.path = path
@@ -82,7 +78,7 @@ class JS(Leaf):
         save(self.data, build_dir, self.name)
         return f"<script defer src={self.name}'></script>"
 
-class MD(Leaf):
+class MD(Node):
     def __init__(self, path:str, **kvarg):
         self.path = path
         self.kvarg = keyword_translation(kvarg)
