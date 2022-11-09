@@ -1,8 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 
+:root {
+    --primary: #4c2374;
+    --secondary: #10303f;
+    --selected: #3e6e85;
+    --background: #55798a;
+    --text: #e3e7e9;
+  }
+
 body {
-    background-color: #999999;
-    color: #003300;
+    background-color: var(--background);
+    color: var(--secondary);
     font-family: 'Poppins', sans-serif;
     padding: 0;
     margin: 0;
@@ -46,7 +54,7 @@ nav.menu {
     padding: 0;
     width: 10%;
     overflow: hidden;
-    background-color: #333;
+    background-color: var(--primary);
 }
 
 li {
@@ -56,24 +64,14 @@ li {
 
 /* Change the link color to #111 (black) on hover */
 li a:hover {
-    background-color: #111;
+    background-color: var(--selected);
 }
 
 .active {
-    background-color: #04AA6D;
+    background-color: var(--background);
 }
 
-nav.menu {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    width: 10%;
-    min-width: 150px;
-    background-color: #f1f1f1;
-    position: fixed;
-    height: 100%;
-    z-index: 1;
-}
+
 
 nav.menu li a {
     display: block;
@@ -84,41 +82,39 @@ nav.menu li a {
 }
 
 nav.menu li a.active {
-    background-color: #4CAF50;
-    color: white;
+    background-color: var(--background);
+    color: var(--text);
 }
 
 nav.menu li a:hover:not(.active) {
-    background-color: #555;
-    color: white;
+    background-color: var(--primary);
+    color: var(--text);
+}
+
+
+
+nav.menu {
+    width: 100%;
+    height: auto;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+nav.menu li a {
+    float: left;
+    padding: 15px;
 }
 
 div.content {
-    margin-left: 150px;
+    margin-left: 0;
 }
 
-
+nav.menu li {
+    float: left;
+    width: auto;
+}
 @media screen and (max-width: 900px) {
-    nav.menu {
-        width: 100%;
-        height: auto;
-        position: -webkit-sticky;
-        position: sticky;
-        top: 0;
-    }
-
-    nav.menu li a {
-        float: left;
-        padding: 15px;
-    }
-
-    div.content {
-        margin-left: 0;
-    }
-
-    nav.menu li {
-        float: left;
-        width: auto;
-    }
 
 }
