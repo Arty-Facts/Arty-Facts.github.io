@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-body{
+
+body {
     background-color: #999999;
     color: #003300;
     font-family: 'Poppins', sans-serif;
@@ -39,13 +40,13 @@ section {
     min-width: 80%;
 } */
 
-.menu {
+nav.menu {
     list-style-type: none;
     margin: 0;
     padding: 0;
+    width: 10%;
     overflow: hidden;
     background-color: #333;
-
 }
 
 li {
@@ -61,16 +62,17 @@ li a:hover {
 .active {
     background-color: #04AA6D;
 }
-@media screen {
+
 nav.menu {
     list-style-type: none;
     margin: 0;
     padding: 0;
-    width: auto;
+    width: 10%;
+    min-width: 150px;
     background-color: #f1f1f1;
     position: fixed;
     height: 100%;
-    overflow: auto;
+    z-index: 1;
 }
 
 nav.menu li a {
@@ -92,17 +94,17 @@ nav.menu li a:hover:not(.active) {
 }
 
 div.content {
-    margin-left: 25%;
-    padding: 1px 16px;
-    height: 1000px;
+    margin-left: 150px;
 }
-}
+
 
 @media screen and (max-width: 900px) {
     nav.menu {
         width: 100%;
         height: auto;
-        position: relative;
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0;
     }
 
     nav.menu li a {
@@ -113,21 +115,10 @@ div.content {
     div.content {
         margin-left: 0;
     }
-    nav.menu li {
-        float: left;
-        width: auto;
-    }
-    
-}
 
-@media screen and (max-width: 400px) {
-    nav.menu li a {
-        text-align: center;
-        float: none;
-        width: auto;
-    }
     nav.menu li {
         float: left;
-        width: 100%;
+        width: auto;
     }
+
 }

@@ -25,9 +25,11 @@ site = Html(
             Li(A(Text("Contanst"), href="contanst")),
             Li(A(Text("About"), href="about")),
             cls="menu",
-
         ),
         Div(
+            Section(
+                MD("content/home.md", cls="mdPage"),
+                cls="hidden"),
             *[Section(
                 A(
                     Img(src=img),
@@ -35,9 +37,6 @@ site = Html(
                 ),
                 cls="hidden") for link, img in links
               ],
-            Section(
-                MD("content/home.md", cls="mdPage"),
-                cls="hidden"),
             cls="content"
         )
     ),
