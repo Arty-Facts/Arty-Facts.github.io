@@ -77,30 +77,40 @@ nav.menu li a.active {
     color: var(--hover-text);
 }
 
-li a:hover {
+nav.menu li a:hover {
     background-color: var(--hover);
     color: var(--hover-text);
 }
 
 div.content {
     /* margin-left: 10%; */
-    display: block;
-    float: left;
+    display: inline-block;
+    /* float: center; */
+    overflow: hidden;
+    height: 100%;
+    width: calc(100% - 150px);
+
+}
+div.workspace {
+    /* margin-left: 10%; */
+    /* float: left; */
+    width:100%; 
+    position:relative;
+    white-space: nowrap;
     overflow: hidden;
 
 }
-
 nav.side-menu {
-    display: block;
+    display: inline-block;
     list-style-type: none;
     margin: 0;
-    padding: 0;
-    /* width: 10%; */
-    /* min-width: 150px; */
+    padding: 0; 
+    width: 150px;
     background-color: var(--side-menu);
-    /* position: fixed;  */
-    height: 100%;
+    /* position: fixed;   */
+    height: 100%;   
     overflow: hidden;
+    float: left;
 }
 
 nav.side-menu li a {
@@ -118,6 +128,10 @@ nav.side-menu li a.active {
 nav.side-menu li a:hover:not(.active) {
     background-color: var(--side-menu);
     color: var(--text);
+}
+nav.side-menu li a:hover {
+    background-color: var(--hover);
+    color: var(--hover-text);
 }
 
 @media screen and (max-width: 900px) {}
