@@ -46,3 +46,7 @@ def read_md_as_html(path: str):
     html += mistune.markdown(text)
     html += "</body></html>"
     return html
+    
+def read_md(path: str):
+    with open(path, 'r') as f:
+        return f.read()

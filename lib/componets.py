@@ -4,7 +4,7 @@ from lib.utils import ( dict_to_css,
                         keyword_translation, 
                         build_attributes, 
                         copy,
-                        read_md_as_html
+                        read_md
                       )
 class Text:
     def __init__(self, data:str):
@@ -84,8 +84,6 @@ class MD(Node):
         self.kvarg = keyword_translation(kvarg)
 
     def build(self, build_dir):
-        html_data = read_md_as_html(self.path)
-        path = self.path+".html"
-        save(html_data, build_dir, path)
-        return f"<embed src='./{path}' {build_attributes(self.kvarg)}>"
+        data = read_md(self.path)
+        return f'<div markdown="1">{data}</div>'
 

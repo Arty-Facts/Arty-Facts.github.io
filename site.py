@@ -28,10 +28,10 @@ site = Html(
         ),
         Div(
             Nav(
-                Li(A(Text("Gans"), cls="active")),
-                Li(A(Text("Defusion"))),
-                Li(A(Text("Tools"), cls="active")),
-                Li(A(Text("Summury"))),
+                Li(A(Text("Gans"), cls="active"), cls="menu-transition"),
+                Li(A(Text("Defusion")), cls="menu-transition"),
+                Li(A(Text("Tools")), cls="menu-transition"),
+                Li(A(Text("Summury")), cls="menu-transition"),
                 cls="side-menu",
             ),
             Div(

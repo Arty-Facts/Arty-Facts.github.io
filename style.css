@@ -47,6 +47,30 @@ section {
     opacity: 1;
     filter: blur(0);
     transform: translateX(0);
+    /* transition-delay: calc(100ms * var(--order)); */
+}
+
+.menu-transition {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateX(-100%);
+    transition: all 1s;
+}
+
+.show-menu {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0);
+}
+
+.show-menu:nth-child(2){
+    transition-delay: 200ms;
+}
+.show-menu:nth-child(3){
+    transition-delay: 600ms;
+}
+.show-menu:nth-child(4){
+    transition-delay: 800ms;
 }
 
 nav.menu {
@@ -57,7 +81,7 @@ nav.menu {
     margin-left: 150px;
     overflow: hidden;
     background-color: var(--top-menu);
-    width: 100%;
+    width: calc(100% - 150px);
     height: auto;
     position: -webkit-sticky;
     position: sticky;
