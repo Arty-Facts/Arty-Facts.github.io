@@ -1,33 +1,57 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <title>Document</title>
-    <link  rel="stylesheet" href="style.css" >
-    <script defer src="app.js"></script>
-</head>
-<body>
-    <section class="hidden">
-        <h1>hej</h1>
-        <img src="https://avatars.githubusercontent.com/u/8863817?v=4" alt="Arturas Aleksandraus"/>
-    </section>
-
-    <section class="hidden">
-        <a class="col" href="https://github.com/Arty-Facts">
-            <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" alt="Arturas Aleksandraus "/>
-        </a>
-    </section>
-    
-    <section class="hidden">
-        <a class="col" href="https://www.linkedin.com/in/arturas-aleksandraus-7ab4a1192/">
-            <img src="https://www.maryville.edu/wp-content/uploads/2015/11/Linkedin-logo-1-550x550-300x300.png" alt="Arturas Aleksandraus"/>
-        </a>
-    </section>
-
-    <section class="hidden">
-        <a class="col" href="mailto:Arturas.Aleksandraus@ContextVision.se">
-            <img src="https://www.transparentpng.com/thumb/email-logo/blue-arrow-and-open-email-logo-hd-png-yfOWBP.png" alt="Arturas.Aleksandraus@ContextVision.se"/>
-        </a>
-    </section>
-    
-</body>
+    <head>
+        <meta charset="utf-8" />
+        <title>Elo Calculator</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Simple Elo rating calculator" />
+    <meta name="theme-color" content="#0969da" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="256x256" href="icon-256.png" />
+    <link rel="apple-touch-icon" sizes="256x256" href="icon-256.png" />
+    <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <h1>Elo Calculator</h1>
+        <p class="muted">Quickly update ratings after a match.</p>
+        <form id="form" autocomplete="off">
+            <div class="row">
+                <div>
+                    <label for="winner">Winner Elo</label>
+                    <input id="winner" inputmode="decimal" placeholder="1500" />
+                </div>
+                <div>
+                    <label for="loser">Loser Elo</label>
+                    <input id="loser" inputmode="decimal" placeholder="1400" />
+                </div>
+                <div>
+                    <label for="kval">K</label>
+                    <input id="kval" inputmode="decimal" placeholder="32" />
+                </div>
+            </div>
+            <button type="submit">Compute</button>
+        </form>
+        <h3>Result</h3>
+        <pre id="out">—</pre>
+        <details class="elo-explainer">
+            <summary class="muted">How the Elo update works</summary>
+            <p>
+                <strong>Step 1 — Predict.</strong> Compute the expected win chance for player A:<br>
+                <code>E<sub>a</sub> = 1 / (1 + 10<sup>(R<sub>b</sub> − R<sub>a</sub>)/400</sup>)</code>.
+            </p>
+            <p>
+                <strong>Step 2 — Observe.</strong> Record the actual score <code>S<sub>a</sub></code>
+                (1 for a win, 0 for a loss).
+            </p>
+            <p>
+                <strong>Step 3 — Update.</strong> Move the rating toward the result:<br>
+                <code>R′<sub>a</sub> = R<sub>a</sub> + K × (S<sub>a</sub> − E<sub>a</sub>)</code>.
+            </p>
+            <p class="muted">
+                A larger <code>K</code> reacts faster to new games; a smaller one keeps ratings stable.
+            </p>
+            </details>
+<footer class="muted">Client‑side only • No data stored</footer>
+        <script defer src="app.js"></script>
+    </body>
 </html>
