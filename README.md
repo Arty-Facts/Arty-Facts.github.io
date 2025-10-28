@@ -6,7 +6,7 @@ Minimal, privacy-friendly web tools. All logic runs in your browser; no framewor
 
 **Live:** https://arty-facts.github.io/
 
-The landing page lists all available webapps. Each app is fully modular, with its own HTML, CSS, and JS.
+The landing page lists all available tools.
 
 ### Available Apps
 
@@ -23,30 +23,5 @@ To test offline locally:
 2. Visit http://localhost:8000/ once (so assets cache).
 3. Go offline and refresh — it should still load.
 
-## 🛠️ Structure
-
-- `index.html`, `style.css`, `app.js` — Root landing page
-- `/elo/` — Elo Calculator app (with its own `index.html`, `style.css`, `app.js`, etc)
-
-Each app is self-contained and easy to extend. Add new apps by creating a new folder with separate HTML, CSS, and JS.
-
-## 📏 Elo Calculator Formula
-
-Expected score for player A:
-
-```
-Ea = 1 / (1 + 10^((Rb - Ra)/400))
-```
-
-Rating update (win/loss):
-
-```
-R'a = Ra + K * (Sa - Ea)
-R'b = Rb + K * (Sb - Eb)
-```
-
-Where Sa = 1, Sb = 0 for a decisive win.
-
 ## 🪪 License
-
 MIT License. See `LICENSE` file for details.
