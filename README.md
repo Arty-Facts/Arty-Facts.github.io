@@ -1,21 +1,36 @@
+# Arty-Tools by Arty-Facts
 
-## Elo Calculator
+Minimal, privacy-friendly web tools. All logic runs in your browser; no frameworks, no tracking.
 
-Lightweight, single‑page Elo rating calculator. All logic runs in your browser; no frameworks, no tracking.
+## 🚀 Try it
 
-### Try it
+**Live:** https://arty-facts.github.io/
 
-Open: https://arty-facts.github.io/
+The landing page lists all available webapps. Each app is fully modular, with its own HTML, CSS, and JS.
 
-Enter two ratings (winner first, loser second) and optionally a K‑factor (defaults to 32), then press Enter or click Compute.
+### Available Apps
 
-You can also type or paste a command style input into any field:
+- **Elo Calculator** ([/elo/](https://arty-facts.github.io/elo/)) — Update Elo ratings after a match. PWA, offline-ready.
 
-```
-/elo 1500 1400 24
-```
+## 📱 PWA & Offline
 
-### Formula
+- Each app can be installed as a Progressive Web App (PWA).
+- Works offline after first visit (core assets cached by service worker).
+- Installable (Add to Home Screen) on mobile & desktop browsers supporting PWA.
+
+To test offline locally:
+1. Run a local server (e.g. `python3 -m http.server`).
+2. Visit http://localhost:8000/ once (so assets cache).
+3. Go offline and refresh — it should still load.
+
+## 🛠️ Structure
+
+- `index.html`, `style.css`, `app.js` — Root landing page
+- `/elo/` — Elo Calculator app (with its own `index.html`, `style.css`, `app.js`, etc)
+
+Each app is self-contained and easy to extend. Add new apps by creating a new folder with separate HTML, CSS, and JS.
+
+## 📏 Elo Calculator Formula
 
 Expected score for player A:
 
@@ -32,29 +47,6 @@ R'b = Rb + K * (Sb - Eb)
 
 Where Sa = 1, Sb = 0 for a decisive win.
 
-### Offline / Install (PWA)
+## 🪪 License
 
-The calculator is a Progressive Web App:
-
-- Opens offline after first visit (core assets cached by `sw.js`).
-- Installable (Add to Home Screen) on mobile & desktop browsers supporting PWA.
-- Standalone display theme with app icon.
-
-To test offline locally:
-1. Run a local server (e.g. `python3 -m http.server`).
-2. Visit http://localhost:8000/ once (so assets cache).
-3. Go offline and refresh — it should still load.
-
-### Development
-
-Core files:
-
-- `index.html` markup
-- `style.css` styles
-- `app.js` logic + service worker registration
-- `sw.js` caching logic
-- `manifest.webmanifest` metadata & icons
-
-### License
-
-Public domain / Unlicense. Do whatever you like.
+MIT License. See `LICENSE` file for details.

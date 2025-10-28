@@ -1,0 +1,15 @@
+{
+	"name": "Elo Calculator",
+	"short_name": "EloCalc",
+	"description": "Offline Elo rating calculator",
+	"start_url": ".",
+	"scope": ".",
+	"display": "standalone",
+	"orientation": "portrait-primary",
+	"background_color": "#0d1117",
+	"theme_color": "#0969da",
+	"icons": [
+		{ "src": "icon-128.png", "sizes": "128x128", "type": "image/png" },
+		{ "src": "icon-64.png", "sizes": "64x64", "type": "image/png" }
+	]
+}
