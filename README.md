@@ -11,6 +11,7 @@ The landing page lists all available tools.
 ### Available Apps
 
 - **Elo Calculator** ([/elo/](https://arty-facts.github.io/elo/)) — Update Elo ratings after a match. PWA, offline-ready.
+- **Offline TTS (sherpa-onnx)** ([/tts-sherpa/](https://arty-facts.github.io/tts-sherpa/)) — Browser-based text-to-speech powered by sherpa-onnx WebAssembly. No backend required.
 
 ## 📱 PWA & Offline
 
