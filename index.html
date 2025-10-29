@@ -9,26 +9,41 @@
         <link rel="stylesheet" href="style.css" />
     </head>
     <body>
-        <main>
-            <section class="hero">
-                <div class="hero-bg"></div>
-                <h1><span class="accent">Arty-Tools</span></h1>
-                <p class="muted">A growing collection of simple, beautiful web tools.<br>Fast, privacy-friendly, and open source.</p>
-            </section>
-            <section class="app-list" id="apps">
-                <a class="app-card" href="/elo/">
-                    <div class="app-icon">
-                        <img src="/elo/icon-64.png" alt="Elo Calculator icon" width="64" height="64" />
-                    </div>
-                    <div class="app-info">
-                        <h2>Elo Calculator</h2>
-                        <p class="muted">Update Elo ratings after a match. PWA, offline-ready.</p>
-                    </div>
-                    <span class="app-arrow">→</span>
-                </a>
+        <main class="app">
+            <header>
+                <h1><span>Arty-Tools</span></h1>
+                <p class="tagline">A growing collection of simple, beautiful web tools.<br>Fast, privacy-friendly, and open source.</p>
+            </header>
+
+            <section class="card">
+                <div class="app-list" id="apps">
+                    <a class="app-card" href="/elo/">
+                        <div class="app-icon">
+                            <img src="/elo/icon-64.png" alt="Elo Calculator icon" width="64" height="64" />
+                        </div>
+                        <div class="app-info">
+                            <h2>Elo Calculator</h2>
+                            <p class="muted">Update Elo ratings after a match. PWA, offline-ready.</p>
+                        </div>
+                        <span class="app-arrow">→</span>
+                    </a>
+                    <a class="app-card" href="/tts/">
+                        <div class="app-icon">
+                            <img src="/tts/icon-64.png" alt="Text to Speech icon" width="64" height="64" />
+                        </div>
+                        <div class="app-info">
+                            <h2>Text to Speech</h2>
+                            <p class="muted">Offline TTS Multiple languages, runs in browser.</p>
+                        </div>
+                        <span class="app-arrow">→</span>
+                    </a>
+                </div>
             </section>
         </main>
-        <footer class="muted">By <a href="https://github.com/Arty-Facts">Arty-Facts</a> • <a href="https://github.com/Arty-Facts/Arty-Facts.github.io">Source</a></footer>
+
+        <footer class="footer">
+            <p>By <a href="https://github.com/Arty-Facts">Arty-Facts</a> • <a href="https://github.com/Arty-Facts/Arty-Facts.github.io">Source</a></p>
+        </footer>
         <script defer src="app.js"></script>
     </body>
 </html>
