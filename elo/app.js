@@ -10,7 +10,7 @@
 function compute(winner, loser, K) {
     const Ea = 1 / (1 + Math.pow(10, (loser - winner) / 400));
     const Eb = 1 - Ea;
-    const newWinner = winner + K * (1 - Ea); // winner scored 1
+    const newWinner = winner + K * (1 - Ea) + 2; // winner scored 1
     const newLoser = loser + K * (0 - Eb);   // loser scored 0
     return [Math.round(newWinner), Math.round(newLoser), Ea];
 }
