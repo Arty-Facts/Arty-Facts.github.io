@@ -12,6 +12,7 @@ The landing page lists all available tools.
 
 - **Elo Calculator** ([/elo/](https://arty-facts.github.io/elo/)) — Update Elo ratings after a match. PWA, offline-ready.
 - **Offline TTS (sherpa-onnx)** ([/tts-sherpa/](https://arty-facts.github.io/tts-sherpa/)) — Browser-based text-to-speech powered by sherpa-onnx WebAssembly. No backend required.
+- **LEGO Booklet Maker** ([/lego_booklet/](https://arty-facts.github.io/lego_booklet/)) — Turn a LEGO instructions PDF into a 2-up A4 duplex booklet. Runs entirely in the browser.
 
 ## 📱 PWA & Offline
 

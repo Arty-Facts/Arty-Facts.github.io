@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LEGO Booklet Maker</title>
+<meta name="description" content="Turn a LEGO building-instructions PDF into a 2-up A4 duplex booklet. Runs 100% in your browser.">
+<meta name="theme-color" content="#38bdf8">
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: rgba(15, 23, 42, 0.85);
+    --panel2: #27364a;
+    --ink: #f8fafc;
+    --muted: rgba(248, 250, 252, 0.72);
+    --accent: #38bdf8;
+    --accent2: #fbbf24;
+    --danger: #f87171;
+    --ok: #4ade80;
+    --border: rgba(255, 255, 255, 0.12);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(circle at top, rgba(56,189,248,.18), transparent 55%),
+                radial-gradient(circle at 20% 80%, rgba(14,165,233,.12), transparent 60%),
+                var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  header.top {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  header.top .back {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .9rem;
+    margin-right: 4px;
+  }
+  header.top .back:hover { text-decoration: underline; }
+  header.top h1 { margin: 0; font-size: 1.3rem; }
+  header.top .tag { color: var(--muted); font-size: .85rem; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  section { margin-bottom: 24px; }
+  h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 12px; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 16px 48px rgba(2, 6, 23, 0.45);
+  }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+  .drop {
+    border: 2px dashed rgba(148,163,184,.4);
+    border-radius: 14px;
+    padding: 28px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    color: var(--muted);
+  }
+  .drop:hover, .drop.drag { border-color: var(--accent); background: rgba(255,255,255,.06); }
+  .drop input { display: none; }
+
+  input[type=text] {
+    flex: 1;
+    min-width: 260px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel2);
+    color: var(--ink);
+    font-size: .95rem;
+  }
+  button {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel2);
+    color: var(--ink);
+    font-size: .95rem;
+    cursor: pointer;
+    transition: filter .12s, transform .05s;
+  }
+  button:hover:not(:disabled) { filter: brightness(1.15); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.primary { background: var(--accent2); color: #1a1400; border-color: var(--accent2); font-weight: 600; }
+  button.accent2 { background: var(--accent); color: #001018; border-color: var(--accent); font-weight: 600; }
+
+  #status { min-height: 1.2em; color: var(--muted); font-size: .9rem; }
+  #status.error { color: var(--danger); }
+  #status.ok { color: var(--ok); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 14px;
+  }
+  figure { margin: 0; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  figure canvas { display: block; width: 100%; height: auto; background: #fff; }
+  figcaption {
+    padding: 6px 8px;
+    font-size: .75rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .meta { color: var(--muted); font-size: .9rem; margin-top: 8px; }
+
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  #print-area { display: none; }
+  @media print {
+    @page { size: A4 portrait; margin: 0; }
+    body { background: #fff; }
+    .app { display: none !important; }
+    #print-area { display: block !important; }
+    #print-area canvas {
+      display: block;
+      width: 210mm;
+      height: 297mm;
+      page-break-after: always;
+    }
+    #print-area canvas:last-child { page-break-after: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <a class="back" href="/">← All tools</a>
+    <h1>🧱 LEGO Booklet Maker</h1>
+    <span class="tag">2 pages per A4 · duplex · cut &amp; stack · runs 100% in your browser</span>
+  </header>
+
+  <main>
+    <div id="status"></div>
+
+    <section>
+      <h2>1 · Load a PDF</h2>
+      <div class="card">
+        <div class="drop" id="drop">
+          <p><strong>Drop a PDF here</strong> or click to browse</p>
+          <p style="font-size:.85rem">Each PDF page becomes one booklet page, in order.</p>
+          <input type="file" id="file" accept="application/pdf,.pdf">
+        </div>
+        <div class="row" style="margin-top:14px">
+          <input type="text" id="url" placeholder="Paste a direct .pdf link (LEGO 'Download' button → copy link)">
+          <button class="accent2" id="urlBtn">Fetch PDF</button>
+        </div>
+        <div class="meta" id="srcMeta"></div>
+      </div>
+    </section>
+
+    <section id="srcSection" hidden>
+      <h2>2 · Source pages</h2>
+      <div class="grid" id="srcGrid"></div>
+    </section>
+
+    <section>
+      <h2>3 · Make booklet</h2>
+      <div class="card">
+        <div class="toolbar">
+          <button class="primary" id="genBtn" disabled>Generate booklet</button>
+          <button id="dlBtn" disabled>⬇ Download PDF</button>
+          <button id="printBtn" disabled>🖨 Print</button>
+        </div>
+        <div class="meta" id="outMeta"></div>
+        <div class="meta">
+          Print duplex with <strong>flip on LONG edge</strong>. Cut each A4 horizontally
+          across the middle, stack the top half over the bottom half per sheet, in order.
+        </div>
+      </div>
+    </section>
+
+    <section id="outSection" hidden>
+      <h2>4 · Preview (front / back per sheet)</h2>
+      <div class="grid" id="outGrid"></div>
+    </section>
+  </main>
+</div>
+
+<div id="print-area"></div>
+
+<script>
+"use strict";
+
+/* ---------- constants ---------- */
+const A4_W = 595.28, A4_H = 841.89;   // points
+const MARGIN = 14.173;                 // 5 mm in points
+const HALF_H = A4_H / 2;
+const PREVIEW_SCALE = 0.45;
+const PRINT_SCALE = 2.5;               // ~180 dpi
+
+const state = { srcBytes: null, srcDoc: null, outBytes: null };
+
+const $ = (id) => document.getElementById(id);
+const statusEl = $("status");
+
+/* ---------- pdf.js setup ---------- */
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+/* ---------- helpers ---------- */
+function setStatus(msg, cls) {
+  statusEl.textContent = msg || "";
+  statusEl.className = cls || "";
+}
+
+function visualSize(page) {
+  let { width, height } = page.getSize();
+  const rot = (page.getRotation().angle % 180 + 180) % 180;
+  if (rot === 90 || rot === 270) [width, height] = [height, width];
+  return { width, height };
+}
+
+function isPdf(bytes) {
+  const u = new Uint8Array(bytes.slice(0, 5));
+  return u[0] === 0x25 && u[1] === 0x50 && u[2] === 0x44 && u[3] === 0x46;
+}
+
+async function fetchWithFallback(url) {
+  const attempts = [
+    { u: url, label: "direct" },
+    { u: "https://api.allorigins.win/raw?url=" + encodeURIComponent(url), label: "proxy 1" },
+    { u: "https://corsproxy.io/?url=" + encodeURIComponent(url), label: "proxy 2" },
+  ];
+  let lastErr = null;
+  for (const a of attempts) {
+    try {
+      const res = await fetch(a.u, { mode: "cors" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const buf = await res.arrayBuffer();
+      if (isPdf(buf)) return buf;
+      // maybe HTML page: hunt for a .pdf link
+      const html = new TextDecoder().decode(buf);
+      const m = html.match(/https?:\/\/[^"'\s<>]+?\.pdf[^"'\s<>]*/i);
+      if (m) {
+        const proxied = "https://api.allorigins.win/raw?url=" + encodeURIComponent(m[0]);
+        const r2 = await fetch(proxied, { mode: "cors" });
+        if (r2.ok) {
+          const b2 = await r2.arrayBuffer();
+          if (isPdf(b2)) return b2;
+        }
+      }
+      lastErr = new Error("URL did not return a PDF");
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("Could not fetch PDF");
+}
+
+async function renderPdfPages(bytes, container, scale, labelFn) {
+  container.innerHTML = "";
+  const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  const pdf = await pdfjsLib.getDocument({ data }).promise;
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const vp = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.floor(vp.width);
+    canvas.height = Math.floor(vp.height);
+    const ctx = canvas.getContext("2d");
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+    const fig = document.createElement("figure");
+    fig.appendChild(canvas);
+    if (labelFn) {
+      const cap = document.createElement("figcaption");
+      cap.textContent = labelFn(i);
+      fig.appendChild(cap);
+    }
+    container.appendChild(fig);
+  }
+  return pdf.numPages;
+}
+
+/* ---------- source loading ---------- */
+async function loadSource(bytes, name) {
+  const srcDoc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
+  const n = srcDoc.getPageCount();
+  if (n === 0) throw new Error("PDF has no pages");
+
+  state.srcBytes = bytes;
+  state.srcDoc = srcDoc;
+  state.outBytes = null;
+
+  $("srcMeta").textContent = `${name} — ${n} page${n === 1 ? "" : "s"}`;
+  $("srcSection").hidden = false;
+  $("outSection").hidden = true;
+  $("genBtn").disabled = false;
+  $("dlBtn").disabled = true;
+  $("printBtn").disabled = true;
+
+  setStatus("Rendering source pages…", "");
+  await renderPdfPages(bytes, $("srcGrid"), PREVIEW_SCALE, (i) => `Source page ${i}`);
+  setStatus(`${n} pages loaded. Press "Generate booklet".`, "ok");
+}
+
+$("file").addEventListener("change", async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    setStatus("Loading " + f.name + "…", "");
+    const bytes = await f.arrayBuffer();
+    await loadSource(bytes, f.name);
+  } catch (err) {
+    setStatus("Error: " + err.message, "error");
+  }
+});
+
+$("drop").addEventListener("click", () => $("file").click());
+$("drop").addEventListener("dragover", (e) => { e.preventDefault(); $("drop").classList.add("drag"); });
+$("drop").addEventListener("dragleave", () => $("drop").classList.remove("drag"));
+$("drop").addEventListener("drop", async (e) => {
+  e.preventDefault();
+  $("drop").classList.remove("drag");
+  const f = e.dataTransfer.files[0];
+  if (!f) return;
+  try {
+    setStatus("Loading " + f.name + "…", "");
+    const bytes = await f.arrayBuffer();
+    await loadSource(bytes, f.name);
+  } catch (err) {
+    setStatus("Error: " + err.message, "error");
+  }
+});
+
+$("urlBtn").addEventListener("click", async () => {
+  const url = $("url").value.trim();
+  if (!url) { setStatus("Paste a URL first.", "error"); return; }
+  try {
+    setStatus("Fetching PDF… (may take a few seconds)", "");
+    const bytes = await fetchWithFallback(url);
+    const name = url.split("/").pop() || "instructions.pdf";
+    await loadSource(bytes, name);
+  } catch (err) {
+    setStatus("Error fetching URL: " + err.message, "error");
+  }
+});
+
+/* ---------- imposition ---------- */
+async function generate() {
+  if (!state.srcDoc) return;
+  setStatus("Generating booklet…", "");
+  const src = state.srcDoc;
+  const n = src.getPageCount();
+  const pad = (4 - (n % 4)) % 4;
+  const total = n + pad;
+  const sheets = total / 4;
+
+  const out = await PDFLib.PDFDocument.create();
+  const embeddedPages = await out.embedPdf(src, Array.from({ length: n }, (_, i) => i));
+
+  const sizes = [];
+  for (let i = 0; i < n; i++) sizes.push(visualSize(src.getPage(i)));
+
+  const place = (idx) => {
+    if (idx >= n) return null; // blank slot
+    const emb = embeddedPages[idx];
+    const { width: w, height: h } = sizes[idx];
+    const s = Math.min((A4_W - 2 * MARGIN) / w, (HALF_H - 2 * MARGIN) / h);
+    const sw = w * s, sh = h * s;
+    const tx = (A4_W - sw) / 2;
+    const tyTop = HALF_H + (HALF_H - sh) / 2;
+    const tyBottom = (HALF_H - sh) / 2;
+    return { emb, s, tx, tyTop, tyBottom };
+  };
+
+  for (let i = 0; i < sheets; i++) {
+    const a = 4 * i, b = 4 * i + 1, c = 4 * i + 2, d = 4 * i + 3;
+
+    const front = out.addPage([A4_W, A4_H]);
+    const back = out.addPage([A4_W, A4_H]);
+
+    const pa = place(a), pc = place(c);
+    const pb = place(b), pd = place(d);
+
+    if (pa) front.drawPage(pa.emb, { x: pa.tx, y: pa.tyTop, xScale: pa.s, yScale: pa.s });
+    if (pc) front.drawPage(pc.emb, { x: pc.tx, y: pc.tyBottom, xScale: pc.s, yScale: pc.s });
+    if (pb) back.drawPage(pb.emb, { x: pb.tx, y: pb.tyTop, xScale: pb.s, yScale: pb.s });
+    if (pd) back.drawPage(pd.emb, { x: pd.tx, y: pd.tyBottom, xScale: pd.s, yScale: pd.s });
+  }
+
+  const outBytes = await out.save();
+  state.outBytes = outBytes;
+
+  $("outMeta").textContent =
+    `${n} source pages → ${sheets} sheet${sheets === 1 ? "" : "s"} (${out.getPageCount()} output pages, ${pad} blank slot${pad === 1 ? "" : "s"} padded)`;
+
+  setStatus("Booklet ready.", "ok");
+  $("outSection").hidden = false;
+  $("dlBtn").disabled = false;
+  $("printBtn").disabled = false;
+
+  setStatus("Rendering preview…", "");
+  await renderPdfPages(outBytes, $("outGrid"), PREVIEW_SCALE, (i) => {
+    const sheet = Math.ceil(i / 2);
+    return i % 2 === 1 ? `Sheet ${sheet} — front` : `Sheet ${sheet} — back`;
+  });
+  setStatus("Booklet ready. Download or print.", "ok");
+}
+
+$("genBtn").addEventListener("click", () => {
+  generate().catch((e) => setStatus("Error: " + e.message, "error"));
+});
+
+/* ---------- download ---------- */
+$("dlBtn").addEventListener("click", () => {
+  if (!state.outBytes) return;
+  const blob = new Blob([state.outBytes], { type: "application/pdf" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "booklet.pdf";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+
+/* ---------- print ---------- */
+$("printBtn").addEventListener("click", async () => {
+  if (!state.outBytes) return;
+  try {
+    setStatus("Preparing print…", "");
+    const area = $("print-area");
+    area.innerHTML = "";
+    await renderPdfPages(state.outBytes, area, PRINT_SCALE, null);
+    window.print();
+    setStatus("Print dialog opened.", "ok");
+  } catch (e) {
+    setStatus("Print error: " + e.message, "error");
+  }
+});
+</script>
+</body>
+</html>
