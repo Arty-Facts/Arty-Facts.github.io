@@ -356,6 +356,12 @@
     "espeak-ng-data/voices/!v/zac",
     "espeak-ng-data/yue_dict"
   ],
+  "kokoro-int8-en-v0_19": [
+    "model.int8.onnx.0",
+    "model.int8.onnx.1",
+    "voices.bin",
+    "tokens.txt"
+  ],
   "vits-piper-sv_SE-lisa-medium": [
     "MODEL_CARD",
     "sv_SE-lisa-medium.onnx",
@@ -366,24 +372,6 @@
     "MODEL_CARD",
     "sv_SE-nst-medium.onnx",
     "sv_SE-nst-medium.onnx.json",
-    "tokens.txt"
-  ],
-  "vits-piper-en_GB-cori-medium": [
-    "MODEL_CARD",
-    "en_GB-cori-medium.onnx",
-    "en_GB-cori-medium.onnx.json",
-    "tokens.txt"
-  ],
-  "vits-piper-en_GB-northern_english_male-medium": [
-    "MODEL_CARD",
-    "en_GB-northern_english_male-medium.onnx",
-    "en_GB-northern_english_male-medium.onnx.json",
-    "tokens.txt"
-  ],
-  "vits-piper-en_US-amy-medium": [
-    "MODEL_CARD",
-    "en_US-amy-medium.onnx",
-    "en_US-amy-medium.onnx.json",
     "tokens.txt"
   ]
 }

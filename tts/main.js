@@ -1,4 +1,8 @@
 const statusEl = document.getElementById("status");
+
+/* pdf.js worker */
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 const formEl = document.getElementById("ttsForm");
 const textInput = document.getElementById("textInput");
 const synthBtn = document.getElementById("synthesizeBtn");
@@ -13,8 +17,14 @@ const languageSelect = document.getElementById("languageSelect");
 const voiceSelect = document.getElementById("voiceSelect");
 const voiceLabel = document.getElementById("voiceLabel");
 const voiceDetails = document.getElementById("voiceDetails");
+const pdfDrop = document.getElementById("pdfDrop");
+const pdfFile = document.getElementById("pdfFile");
+const pdfUrl = document.getElementById("pdfUrl");
+const pdfUrlBtn = document.getElementById("pdfUrlBtn");
+const pdfText = document.getElementById("pdfText");
+const pdfReadBtn = document.getElementById("pdfReadBtn");
 
-const DEFAULT_MODEL_ID = "en-gb-cori";
+const DEFAULT_MODEL_ID = "kokoro-en";
 const MODEL_MANIFEST_PATH = "./models/manifest.json";
 
 const SHERPA_TTS_SPEAKERS = [
@@ -34,30 +44,17 @@ const SHERPA_TTS_SPEAKERS = [
     description: "National Library of Sweden voice model (NST collection)",
     docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/Swedish/vits-piper-sv_SE-nst-medium.html"
   },
-  {
-    id: 0,
-    modelId: "en-gb-cori",
-    name: "Cori",
-    language: "English (British)",
-    description: "British English voice model from rhasspy/piper-voices",
-    docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/English/vits-piper-en_GB-cori-medium.html"
-  },
-  {
-    id: 0,
-    modelId: "en-gb-northern-male",
-    name: "John",
-    language: "English (British)",
-    description: "Northern English male accent voice from rhasspy/piper-voices",
-    docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/English/vits-piper-en_GB-northern_english_male-medium.html"
-  },
-  {
-    id: 0,
-    modelId: "en-us-amy",
-    name: "Amy",
-    language: "English (American)",
-    description: "American English female voice from rhasspy/piper-voices",
-    docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/English/vits-piper-en_US-amy-medium.html"
-  }
+  { id: 0, modelId: "kokoro-en", name: "AF (American female)", language: "English (American)", description: "Kokoro default American female", docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/English/kokoro-en-v0_19.html" },
+  { id: 1, modelId: "kokoro-en", name: "Bella", language: "English (American)", description: "Kokoro American female", docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/English/kokoro-en-v0_19.html" },
+  { id: 2, modelId: "kokoro-en", name: "Nicole", language: "English (American)", description: "Kokoro American female", docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/English/kokoro-en-v0_19.html" },
+  { id: 3, modelId: "kokoro-en", name: "Sarah", language: "English (American)", description: "Kokoro American female", docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/English/kokoro-en-v0_19.html" },
+  { id: 4, modelId: "kokoro-en", name: "Sky", language: "English (American)", description: "Kokoro American female", docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/English/kokoro-en-v0_19.html" },
+  { id: 5, modelId: "kokoro-en", name: "Adam", language: "English (American)", description: "Kokoro American male", docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/English/kokoro-en-v0_19.html" },
+  { id: 6, modelId: "kokoro-en", name: "Michael", language: "English (American)", description: "Kokoro American male", docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/English/kokoro-en-v0_19.html" },
+  { id: 7, modelId: "kokoro-en", name: "Emma", language: "English (British)", description: "Kokoro British female", docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/English/kokoro-en-v0_19.html" },
+  { id: 8, modelId: "kokoro-en", name: "Isabella", language: "English (British)", description: "Kokoro British female", docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/English/kokoro-en-v0_19.html" },
+  { id: 9, modelId: "kokoro-en", name: "George", language: "English (British)", description: "Kokoro British male", docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/English/kokoro-en-v0_19.html" },
+  { id: 10, modelId: "kokoro-en", name: "Lewis", language: "English (British)", description: "Kokoro British male", docs: "https://k2-fsa.github.io/sherpa/onnx/tts/all/English/kokoro-en-v0_19.html" }
 ];
 
 const MODEL_DEFINITIONS = {
@@ -86,40 +83,18 @@ const MODEL_DEFINITIONS = {
     tokensFile: "tokens.txt",
     sharedDataDir: "common/espeak-ng-data",
     mountDependencies: ["common"],
-    speakerHint: 1,
   },
-  "en-gb-cori": {
-    id: "en-gb-cori",
-    label: "English (British) · Cori",
-    type: "local",
-    dir: "vits-piper-en_GB-cori-medium",
-    modelFile: "en_GB-cori-medium.onnx",
+  "kokoro-en": {
+    id: "kokoro-en",
+    label: "English · Kokoro",
+    type: "kokoro",
+    dir: "kokoro-int8-en-v0_19",
+    modelFile: "model.int8.onnx",
+    modelParts: ["model.int8.onnx.0", "model.int8.onnx.1"],
+    voicesFile: "voices.bin",
     tokensFile: "tokens.txt",
     sharedDataDir: "common/espeak-ng-data",
     mountDependencies: ["common"],
-    speakerHint: 1,
-  },
-  "en-gb-northern-male": {
-    id: "en-gb-northern-male",
-    label: "English (British) · Northern Male",
-    type: "local",
-    dir: "vits-piper-en_GB-northern_english_male-medium",
-    modelFile: "en_GB-northern_english_male-medium.onnx",
-    tokensFile: "tokens.txt",
-    sharedDataDir: "common/espeak-ng-data",
-    mountDependencies: ["common"],
-    speakerHint: 1,
-  },
-  "en-us-amy": {
-    id: "en-us-amy",
-    label: "English (American) · Amy",
-    type: "local",
-    dir: "vits-piper-en_US-amy-medium",
-    modelFile: "en_US-amy-medium.onnx",
-    tokensFile: "tokens.txt",
-    sharedDataDir: "common/espeak-ng-data",
-    mountDependencies: ["common"],
-    speakerHint: 1,
   },
 };
 
@@ -145,6 +120,7 @@ function setButtonBusy(isBusy) {
   synthBtn.disabled = isBusy || !ttsInstance;
   synthLabelDefault.toggleAttribute("hidden", isBusy);
   synthLabelLoading.toggleAttribute("hidden", !isBusy);
+  pdfReadBtn.disabled = isBusy || !ttsInstance || !pdfText.value.trim();
 }
 
 function ensureAudioContext(sampleRate) {
@@ -469,7 +445,7 @@ function ensureDirectory(pathname) {
 }
 
 async function ensureModelMounted(model) {
-  if ((model.type !== "local" && model.type !== "shared-data") || mountedModels.has(model.id)) {
+  if ((model.type !== "local" && model.type !== "shared-data" && model.type !== "kokoro") || mountedModels.has(model.id)) {
     return;
   }
 
@@ -600,16 +576,42 @@ async function ensureModelMounted(model) {
   }
 }
 
+function concatModelParts(model) {
+  if (!model.modelParts || !model.modelParts.length) return;
+  const fs = Module.FS ?? (typeof FS !== "undefined" ? FS : null);
+  if (!fs) throw new Error("Emscripten FS API unavailable; cannot join model parts");
+
+  const base = `/models/${model.dir}`;
+  const target = `${base}/${model.modelFile}`;
+  try {
+    fs.lookupPath(target);
+    return; // already joined
+  } catch (e) {
+    /* not joined yet */
+  }
+
+  const chunks = model.modelParts.map((part) => fs.readFile(`${base}/${part}`, { encoding: "binary" }));
+  const total = chunks.reduce((n, c) => n + c.length, 0);
+  const merged = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+  fs.writeFile(target, merged, { encoding: "binary" });
+}
+
 function buildConfigForModel(model) {
   const base = `/models/${model.dir}`;
-  const dataDir = model.sharedDataDir ? `/models/${model.sharedDataDir}` : (model.dataDir ? `${base}/${model.dataDir}` : "");
-  return {
+  const dataDir = model.sharedDataDir ? `/models/${model.sharedDataDir}` : "";
+
+  const config = {
     offlineTtsModelConfig: {
       offlineTtsVitsModelConfig: {
-        model: `${base}/${model.modelFile}`,
+        model: "",
         lexicon: "",
-        tokens: `${base}/${model.tokensFile}`,
-        dataDir,
+        tokens: "",
+        dataDir: "",
         noiseScale: 0.667,
         noiseScaleW: 0.8,
         lengthScale: 1.0,
@@ -660,6 +662,30 @@ function buildConfigForModel(model) {
     maxNumSentences: 1,
     silenceScale: 0.2,
   };
+
+  if (model.type === "kokoro") {
+    config.offlineTtsModelConfig.offlineTtsKokoroModelConfig = {
+      model: `${base}/${model.modelFile}`,
+      voices: `${base}/${model.voicesFile}`,
+      tokens: `${base}/${model.tokensFile}`,
+      dataDir,
+      lengthScale: 1.0,
+      lexicon: "",
+      lang: "",
+    };
+  } else {
+    config.offlineTtsModelConfig.offlineTtsVitsModelConfig = {
+      model: `${base}/${model.modelFile}`,
+      lexicon: "",
+      tokens: `${base}/${model.tokensFile}`,
+      dataDir,
+      noiseScale: 0.667,
+      noiseScaleW: 0.8,
+      lengthScale: 1.0,
+    };
+  }
+
+  return config;
 }
 
 function queueModelSwitch(modelId) {
@@ -691,6 +717,7 @@ async function switchModelInternal(modelId) {
 
   try {
     await ensureModelMounted(model);
+    if (model.modelParts) concatModelParts(model);
     const config = model.type === "embedded" ? null : buildConfigForModel(model);
     ttsInstance = config ? createOfflineTts(Module, config) : createOfflineTts(Module);
     activeModelId = modelId;
@@ -725,38 +752,34 @@ voiceSelect.addEventListener("change", () => {
 });
 
 
-formEl.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
+async function synthesizeText(text) {
   const selectedVoice = voiceByKey.get(voiceSelect.value);
   if (!selectedVoice) {
     updateStatus("Choose a voice before synthesizing", "warn");
-    return;
+    return false;
   }
 
   try {
     await queueModelSwitch(selectedVoice.modelId);
   } catch (error) {
     console.error(error);
-    return;
+    return false;
   }
 
   if (!ttsInstance) {
     updateStatus("Please wait for the engine to finish loading", "warn");
-    return;
+    return false;
   }
 
-  const text = textInput.value.trim();
+  text = (text || "").trim();
   if (!text) {
     updateStatus("Enter something to synthesize first", "warn");
-    textInput.focus();
-    return;
+    return false;
   }
 
   if (selectedVoice.id < 0 || selectedVoice.id >= ttsInstance.numSpeakers) {
     updateStatus(`Voice must be between 0 and ${ttsInstance.numSpeakers - 1}`, "warn");
-    voiceSelect.focus();
-    return;
+    return false;
   }
 
   const speed = Number(speedInput.value);
@@ -766,17 +789,97 @@ formEl.addEventListener("submit", async (event) => {
 
   try {
     const audio = ttsInstance.generate({ text, sid: selectedVoice.id, speed });
-    // playAudio(audio);
     renderClip(audio, text, selectedVoice, speed);
     updateStatus("Done! You can synthesize another sentence", "success");
-    textInput.focus();
+    return true;
   } catch (err) {
     console.error(err);
     updateStatus("Something went wrong while generating audio", "error");
+    return false;
   } finally {
     setButtonBusy(false);
   }
+}
+
+formEl.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const ok = await synthesizeText(textInput.value);
+  if (ok) textInput.focus();
 });
+
+/* ---------- PDF reading ---------- */
+function pdfLoadedState() {
+  pdfReadBtn.disabled = !pdfText.value.trim() || !ttsInstance;
+}
+
+async function loadPdf(bytes, name) {
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(bytes) }).promise;
+  if (pdf.numPages === 0) throw new Error("PDF has no pages");
+
+  let out = "";
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const tc = await page.getTextContent();
+    let pageText = "";
+    for (const item of tc.items) {
+      if (!item.str) continue;
+      if (pageText && !/\s$/.test(pageText)) pageText += " ";
+      pageText += item.str;
+      if (item.hasEOL) pageText += "\n";
+    }
+    out += `\n--- Page ${i} ---\n${pageText.trim()}\n`;
+  }
+
+  pdfText.value = out.trim();
+  pdfLoadedState();
+  updateStatus(`PDF loaded: ${pdf.numPages} page(s). Select a part and press "Read this text".`, "success");
+}
+
+pdfDrop.addEventListener("click", () => pdfFile.click());
+pdfDrop.addEventListener("dragover", (e) => { e.preventDefault(); pdfDrop.classList.add("drag"); });
+pdfDrop.addEventListener("dragleave", () => pdfDrop.classList.remove("drag"));
+pdfDrop.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  pdfDrop.classList.remove("drag");
+  const f = e.dataTransfer.files[0];
+  if (!f) return;
+  try {
+    updateStatus("Extracting PDF text…", "info");
+    await loadPdf(await f.arrayBuffer(), f.name);
+  } catch (err) {
+    console.error(err);
+    updateStatus("PDF error: " + err.message, "error");
+  }
+});
+
+pdfFile.addEventListener("change", async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    updateStatus("Extracting PDF text…", "info");
+    await loadPdf(await f.arrayBuffer(), f.name);
+  } catch (err) {
+    console.error(err);
+    updateStatus("PDF error: " + err.message, "error");
+  }
+});
+
+pdfUrlBtn.addEventListener("click", async () => {
+  const url = pdfUrl.value.trim();
+  if (!url) { updateStatus("Paste a PDF URL first", "warn"); return; }
+  try {
+    updateStatus("Fetching PDF…", "info");
+    const res = await fetch(url, { mode: "cors" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    await loadPdf(await res.arrayBuffer(), url.split("/").pop() || "document.pdf");
+  } catch (err) {
+    console.error(err);
+    updateStatus("Could not fetch that PDF URL — it may block cross-origin access. Download it and drag-drop instead. (" + err.message + ")", "error");
+  }
+});
+
+pdfReadBtn.addEventListener("click", () => synthesizeText(pdfText.value));
+pdfText.addEventListener("input", pdfLoadedState);
 
 speedValue.textContent = `${Number(speedInput.value).toFixed(1)}×`;
 initializeVoiceCatalog();
