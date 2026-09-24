@@ -176,8 +176,8 @@ select {
 }
 
 .pdf-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
 }
 
@@ -185,12 +185,29 @@ select {
   margin: 0;
 }
 
-.pdf-grid canvas {
+.page-wrap {
+  position: relative;
+}
+
+.page-wrap canvas {
   display: block;
-  width: 100%;
-  height: auto;
   background: #fff;
   border-radius: 6px;
+}
+
+.textLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.textLayer span {
+  position: absolute;
+  color: transparent;
+  white-space: pre;
+  transform-origin: 0 0;
+  cursor: text;
+  user-select: text;
 }
 
 .pdf-grid figcaption {

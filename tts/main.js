@@ -807,7 +807,7 @@ formEl.addEventListener("submit", async (event) => {
 });
 
 /* ---------- PDF reading ---------- */
-const PDF_PREVIEW_SCALE = 0.5;
+const PDF_PREVIEW_WIDTH = 200;
 
 async function loadPdf(bytes, name) {
   const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(bytes) }).promise;
@@ -819,23 +819,50 @@ async function loadPdf(bytes, name) {
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
 
-    // page thumbnail
-    const vp = page.getViewport({ scale: PDF_PREVIEW_SCALE });
+    // render at a fixed width so the selectable text layer lines up 1:1
+    const vp1 = page.getViewport({ scale: 1 });
+    const scale = PDF_PREVIEW_WIDTH / vp1.width;
+    const vp = page.getViewport({ scale });
     const canvas = document.createElement("canvas");
     canvas.width = Math.floor(vp.width);
     canvas.height = Math.floor(vp.height);
     const ctx = canvas.getContext("2d");
     await page.render({ canvasContext: ctx, viewport: vp }).promise;
 
+    const tc = await page.getTextContent();
+
+    // selectable text layer over the page
+    const wrap = document.createElement("div");
+    wrap.className = "page-wrap";
+    wrap.appendChild(canvas);
+    const textLayer = document.createElement("div");
+    textLayer.className = "textLayer";
+    for (const item of tc.items) {
+      if (!item.str) continue;
+      const tx = pdfjsLib.Util.transform(vp.transform, item.transform);
+      const style = tc.styles[item.fontName] || {};
+      const angle = Math.atan2(tx[1], tx[0]);
+      const fontHeight = Math.hypot(tx[2], tx[3]);
+      const fontAscent = fontHeight * (style.ascent || 1);
+      const span = document.createElement("span");
+      span.textContent = item.str;
+      span.style.left = `${tx[4]}px`;
+      span.style.top = `${tx[5] - fontAscent}px`;
+      span.style.fontSize = `${fontHeight}px`;
+      span.style.fontFamily = style.fontFamily || "sans-serif";
+      if (Math.abs(angle) > 0.001) span.style.transform = `rotate(${angle}rad)`;
+      textLayer.appendChild(span);
+    }
+    wrap.appendChild(textLayer);
+
     const fig = document.createElement("figure");
-    fig.appendChild(canvas);
+    fig.appendChild(wrap);
     const cap = document.createElement("figcaption");
     cap.textContent = `Page ${i}`;
     fig.appendChild(cap);
     pdfPages.appendChild(fig);
 
-    // text
-    const tc = await page.getTextContent();
+    // plain text for the bottom box
     let pageText = "";
     for (const item of tc.items) {
       if (!item.str) continue;
@@ -847,7 +874,7 @@ async function loadPdf(bytes, name) {
   }
 
   pdfText.value = out.trim();
-  updateStatus(`PDF loaded: ${pdf.numPages} page(s). Select text below and press Ctrl+C to generate.`, "success");
+  updateStatus(`PDF loaded: ${pdf.numPages} page(s). Select text in the preview and press Ctrl+C.`, "success");
 }
 
 pdfDrop.addEventListener("click", () => pdfFile.click());
@@ -899,6 +926,15 @@ pdfText.addEventListener("copy", () => {
   if (start == null || end == null || start >= end) return;
   const selected = pdfText.value.substring(start, end).trim();
   if (selected) synthesizeText(selected);
+});
+
+document.addEventListener("copy", () => {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) return;
+  if (pdfPages.contains(sel.anchorNode)) {
+    const text = sel.toString().trim();
+    if (text) synthesizeText(text);
+  }
 });
 
 speedValue.textContent = `${Number(speedInput.value).toFixed(1)}×`;
