@@ -60,7 +60,6 @@
     backdrop-filter: blur(16px);
     box-shadow: 0 16px 48px rgba(2, 6, 23, 0.45);
   }
-  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 
   .drop {
     border: 2px dashed rgba(148,163,184,.4);
@@ -74,16 +73,6 @@
   .drop:hover, .drop.drag { border-color: var(--accent); background: rgba(255,255,255,.06); }
   .drop input { display: none; }
 
-  input[type=text] {
-    flex: 1;
-    min-width: 260px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--panel2);
-    color: var(--ink);
-    font-size: .95rem;
-  }
   button {
     padding: 10px 18px;
     border-radius: 8px;
@@ -98,7 +87,6 @@
   button:active:not(:disabled) { transform: translateY(1px); }
   button:disabled { opacity: .45; cursor: not-allowed; }
   button.primary { background: var(--accent2); color: #1a1400; border-color: var(--accent2); font-weight: 600; }
-  button.accent2 { background: var(--accent); color: #001018; border-color: var(--accent); font-weight: 600; }
 
   #status { min-height: 1.2em; color: var(--muted); font-size: .9rem; }
   #status.error { color: var(--danger); }
@@ -122,28 +110,7 @@
   }
   .meta { color: var(--muted); font-size: .9rem; margin-top: 8px; }
 
-  details.help { color: var(--muted); font-size: .85rem; }
-  details.help summary { cursor: pointer; color: var(--accent); }
-  details.help p, details.help ol { margin: 8px 0 0; }
-  details.help code { background: var(--panel2); padding: 1px 5px; border-radius: 4px; }
-  details.help a { color: var(--accent); }
-
   .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
-
-  #print-area { display: none; }
-  @media print {
-    @page { size: A4 portrait; margin: 0; }
-    body { background: #fff; }
-    .app { display: none !important; }
-    #print-area { display: block !important; }
-    #print-area canvas {
-      display: block;
-      width: 210mm;
-      height: 297mm;
-      page-break-after: always;
-    }
-    #print-area canvas:last-child { page-break-after: auto; }
-  }
 </style>
 </head>
 <body>
@@ -165,25 +132,6 @@
           <p style="font-size:.85rem">Each PDF page becomes one booklet page, in order.</p>
           <input type="file" id="file" accept="application/pdf,.pdf">
         </div>
-        <div class="row" style="margin-top:14px">
-          <input type="text" id="url" placeholder="Paste a direct .pdf link (LEGO 'Download' button → copy link)">
-          <button class="accent2" id="urlBtn">Fetch PDF</button>
-        </div>
-        <div class="row" style="margin-top:10px">
-          <input type="text" id="proxy" placeholder="Proxy URL (optional) — e.g. https://your-name.workers.dev">
-        </div>
-        <details class="help" style="margin-top:10px">
-          <summary>Why does a LEGO URL fail? (CORS + free fix)</summary>
-          <p>LEGO's servers don't send CORS headers, so the browser blocks the fetch.
-          Public CORS proxies are often busy or blocked. For a reliable fix, host your own
-          tiny proxy on Cloudflare Workers (free):</p>
-          <ol>
-            <li>Open <a href="cors-proxy-worker.js" target="_blank">cors-proxy-worker.js</a> and copy its contents.</li>
-            <li>Go to <a href="https://dash.cloudflare.com/workers" target="_blank">Cloudflare Workers</a> → Create → Worker → paste → Deploy.</li>
-            <li>Copy your worker URL (like <code>https://your-name.workers.dev</code>) into the box above.</li>
-          </ol>
-          <p>Or just <strong>drag-drop the PDF file</strong> — file upload needs no proxy.</p>
-        </details>
         <div class="meta" id="srcMeta"></div>
       </div>
     </section>
@@ -203,8 +151,9 @@
         </div>
         <div class="meta" id="outMeta"></div>
         <div class="meta">
-          Print duplex with <strong>flip on LONG edge</strong>. Cut each A4 horizontally
-          across the middle, stack the top half over the bottom half per sheet, in order.
+          Print button opens the booklet PDF in a new tab — press <strong>Ctrl+P</strong> there.
+          Duplex: <strong>flip on LONG edge</strong>. Cut each A4 horizontally across the middle,
+          stack the top half over the bottom half per sheet, in order.
         </div>
       </div>
     </section>
@@ -216,8 +165,6 @@
   </main>
 </div>
 
-<div id="print-area"></div>
-
 <script>
 "use strict";
 
@@ -226,18 +173,11 @@ const A4_W = 595.28, A4_H = 841.89;   // points
 const MARGIN = 14.173;                 // 5 mm in points
 const HALF_H = A4_H / 2;
 const PREVIEW_SCALE = 0.45;
-const PRINT_SCALE = 2.5;               // ~180 dpi
 
 const state = { srcBytes: null, srcDoc: null, outBytes: null };
 
 const $ = (id) => document.getElementById(id);
 const statusEl = $("status");
-
-/* proxy URL persistence */
-$("proxy").value = localStorage.getItem("proxyUrl") || "";
-$("proxy").addEventListener("input", () => {
-  localStorage.setItem("proxyUrl", $("proxy").value.trim());
-});
 
 /* ---------- pdf.js setup ---------- */
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -254,52 +194,6 @@ function visualSize(page) {
   const rot = (page.getRotation().angle % 180 + 180) % 180;
   if (rot === 90 || rot === 270) [width, height] = [height, width];
   return { width, height };
-}
-
-function isPdf(bytes) {
-  const u = new Uint8Array(bytes.slice(0, 5));
-  return u[0] === 0x25 && u[1] === 0x50 && u[2] === 0x44 && u[3] === 0x46;
-}
-
-async function fetchWithFallback(url) {
-  const attempts = [];
-  const custom = $("proxy").value.trim();
-  if (custom) {
-    const sep = custom.includes("?") ? "&" : "?";
-    attempts.push({ u: custom + sep + "url=" + encodeURIComponent(url), label: "custom proxy" });
-  } else {
-    attempts.push({ u: url, label: "direct" });
-  }
-  attempts.push({ u: "https://api.allorigins.win/raw?url=" + encodeURIComponent(url), label: "allorigins proxy" });
-  attempts.push({ u: "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(url), label: "codetabs proxy" });
-
-  let lastErr = null;
-  for (const a of attempts) {
-    try {
-      const res = await fetch(a.u, { mode: "cors", signal: AbortSignal.timeout(15000) });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const buf = await res.arrayBuffer();
-      if (isPdf(buf)) return buf;
-      // maybe HTML page: hunt for a .pdf link
-      const html = new TextDecoder().decode(buf);
-      const m = html.match(/https?:\/\/[^"'\s<>]+?\.pdf[^"'\s<>]*/i);
-      if (m) {
-        const proxied = "https://api.allorigins.win/raw?url=" + encodeURIComponent(m[0]);
-        const r2 = await fetch(proxied, { mode: "cors", signal: AbortSignal.timeout(15000) });
-        if (r2.ok) {
-          const b2 = await r2.arrayBuffer();
-          if (isPdf(b2)) return b2;
-        }
-      }
-      lastErr = new Error("URL did not return a PDF");
-    } catch (e) {
-      lastErr = e;
-    }
-  }
-  throw new Error(
-    "Could not fetch that URL. LEGO blocks cross-origin access and public proxies are busy or blocked. " +
-    "Either set a free proxy URL (see the note under the box) or drag-drop the PDF file instead."
-  );
 }
 
 async function renderPdfPages(bytes, container, scale, labelFn) {
@@ -377,19 +271,6 @@ $("drop").addEventListener("drop", async (e) => {
     await loadSource(bytes, f.name);
   } catch (err) {
     setStatus("Error: " + err.message, "error");
-  }
-});
-
-$("urlBtn").addEventListener("click", async () => {
-  const url = $("url").value.trim();
-  if (!url) { setStatus("Paste a URL first.", "error"); return; }
-  try {
-    setStatus("Fetching PDF… (may take a few seconds)", "");
-    const bytes = await fetchWithFallback(url);
-    const name = url.split("/").pop() || "instructions.pdf";
-    await loadSource(bytes, name);
-  } catch (err) {
-    setStatus("Error fetching URL: " + err.message, "error");
   }
 });
 
@@ -473,18 +354,17 @@ $("dlBtn").addEventListener("click", () => {
 });
 
 /* ---------- print ---------- */
-$("printBtn").addEventListener("click", async () => {
+$("printBtn").addEventListener("click", () => {
   if (!state.outBytes) return;
-  try {
-    setStatus("Preparing print…", "");
-    const area = $("print-area");
-    area.innerHTML = "";
-    await renderPdfPages(state.outBytes, area, PRINT_SCALE, null);
-    window.print();
-    setStatus("Print dialog opened.", "ok");
-  } catch (e) {
-    setStatus("Print error: " + e.message, "error");
+  const blob = new Blob([state.outBytes], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, "_blank");
+  if (!win) {
+    setStatus("Popup blocked. Allow popups for this site, or use Download then print the PDF.", "error");
+    return;
   }
+  setStatus("Booklet PDF opened in new tab. Press Ctrl+P there (duplex: flip on LONG edge).", "ok");
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 });
 </script>
 </body>
