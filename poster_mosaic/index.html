@@ -273,7 +273,8 @@ function resolveGrid(wMM, hMM, layout) {
   const cols = layout === "custom" ? intVal("customCols") : parseInt(layout[0], 10);
   const rows = layout === "custom" ? intVal("customRows") : parseInt(layout[2], 10);
   if (!(cols >= 1) || !(rows >= 1)) throw new Error("Grid must be at least 1 × 1");
-  const scale = Math.min(cols * A4_W_MM / wMM, rows * A4_H_MM / hMM, 1);
+  // fill the chosen grid: upscales if the source is smaller, downscales if larger
+  const scale = Math.min(cols * A4_W_MM / wMM, rows * A4_H_MM / hMM);
   return { cols, rows, scale };
 }
 
@@ -445,12 +446,14 @@ async function generate() {
   const grid = resolveGrid(wMM, hMM, layout);
 
   const dpi = parseInt($("dpi").value, 10);
-  const big = await renderPage(page, dpi / 72);
+  // render source at higher DPI when upscaling so tiles stay sharp
+  const effDpi = dpi * Math.max(1, grid.scale);
+  const big = await renderPage(page, effDpi / 72);
 
   const a4w = Math.round(A4_W_MM * dpi / MM_PER_IN);
   const a4h = Math.round(A4_H_MM * dpi / MM_PER_IN);
-  const newW = Math.round(big.width * grid.scale);
-  const newH = Math.round(big.height * grid.scale);
+  const newW = Math.round(big.width * Math.min(grid.scale, 1));
+  const newH = Math.round(big.height * Math.min(grid.scale, 1));
   const srcTileW = big.width / grid.cols;
   const srcTileH = big.height / grid.rows;
   const outTileW = Math.round(newW / grid.cols);
@@ -486,7 +489,7 @@ async function generate() {
   const outBytes = await out.save();
   state.outBytes = outBytes;
 
-  const px = grid.scale >= 1 ? "100%" : (grid.scale * 100).toFixed(1) + "%";
+  const px = (grid.scale * 100).toFixed(1) + "%";
   $("outMeta").textContent =
     `${(wMM).toFixed(0)}×${(hMM).toFixed(0)} mm → ${grid.cols}×${grid.rows} tiles (${tiles.length} A4 pages, scale ${px}, ${dpi} DPI)`;
 
