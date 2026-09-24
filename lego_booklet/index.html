@@ -268,7 +268,9 @@ async function fetchWithFallback(url) {
 
 async function renderPdfPages(bytes, container, scale, labelFn) {
   container.innerHTML = "";
-  const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  // pdf.js transfers the buffer to its worker (detaches it). Always hand it a
+  // fresh copy so the caller's bytes (state.outBytes) stay usable.
+  const data = (bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes)).slice();
   const pdf = await pdfjsLib.getDocument({ data }).promise;
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
