@@ -495,7 +495,11 @@ async function generate() {
   $("printBtn").disabled = false;
 
   setStatus("Rendering preview…", "");
-  await renderPdfPages(outBytes, $("outGrid"), PREVIEW_SCALE, (i) => {
+  const outGrid = $("outGrid");
+  outGrid.style.gridTemplateColumns = `repeat(${grid.cols}, 1fr)`;
+  outGrid.style.maxWidth = Math.min(1100, grid.cols * 320) + "px";
+  outGrid.style.margin = "0 auto";
+  await renderPdfPages(outBytes, outGrid, PREVIEW_SCALE, (i) => {
     const idx = i - 1;
     const r = Math.floor(idx / grid.cols) + 1;
     const c = (idx % grid.cols) + 1;
