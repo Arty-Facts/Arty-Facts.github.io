@@ -22,7 +22,7 @@ const pdfFile = document.getElementById("pdfFile");
 const pdfUrl = document.getElementById("pdfUrl");
 const pdfUrlBtn = document.getElementById("pdfUrlBtn");
 const pdfText = document.getElementById("pdfText");
-const pdfReadBtn = document.getElementById("pdfReadBtn");
+const pdfPages = document.getElementById("pdfPages");
 
 const DEFAULT_MODEL_ID = "kokoro-en";
 const MODEL_MANIFEST_PATH = "./models/manifest.json";
@@ -120,7 +120,6 @@ function setButtonBusy(isBusy) {
   synthBtn.disabled = isBusy || !ttsInstance;
   synthLabelDefault.toggleAttribute("hidden", isBusy);
   synthLabelLoading.toggleAttribute("hidden", !isBusy);
-  pdfReadBtn.disabled = isBusy || !ttsInstance || !pdfText.value.trim();
 }
 
 function ensureAudioContext(sampleRate) {
@@ -808,17 +807,34 @@ formEl.addEventListener("submit", async (event) => {
 });
 
 /* ---------- PDF reading ---------- */
-function pdfLoadedState() {
-  pdfReadBtn.disabled = !pdfText.value.trim() || !ttsInstance;
-}
+const PDF_PREVIEW_SCALE = 0.5;
 
 async function loadPdf(bytes, name) {
   const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(bytes) }).promise;
   if (pdf.numPages === 0) throw new Error("PDF has no pages");
 
+  pdfPages.innerHTML = "";
   let out = "";
+
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
+
+    // page thumbnail
+    const vp = page.getViewport({ scale: PDF_PREVIEW_SCALE });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.floor(vp.width);
+    canvas.height = Math.floor(vp.height);
+    const ctx = canvas.getContext("2d");
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+    const fig = document.createElement("figure");
+    fig.appendChild(canvas);
+    const cap = document.createElement("figcaption");
+    cap.textContent = `Page ${i}`;
+    fig.appendChild(cap);
+    pdfPages.appendChild(fig);
+
+    // text
     const tc = await page.getTextContent();
     let pageText = "";
     for (const item of tc.items) {
@@ -831,8 +847,7 @@ async function loadPdf(bytes, name) {
   }
 
   pdfText.value = out.trim();
-  pdfLoadedState();
-  updateStatus(`PDF loaded: ${pdf.numPages} page(s). Select a part and press "Read this text".`, "success");
+  updateStatus(`PDF loaded: ${pdf.numPages} page(s). Select text below and press Ctrl+C to generate.`, "success");
 }
 
 pdfDrop.addEventListener("click", () => pdfFile.click());
@@ -878,8 +893,13 @@ pdfUrlBtn.addEventListener("click", async () => {
   }
 });
 
-pdfReadBtn.addEventListener("click", () => synthesizeText(pdfText.value));
-pdfText.addEventListener("input", pdfLoadedState);
+pdfText.addEventListener("copy", () => {
+  const start = pdfText.selectionStart;
+  const end = pdfText.selectionEnd;
+  if (start == null || end == null || start >= end) return;
+  const selected = pdfText.value.substring(start, end).trim();
+  if (selected) synthesizeText(selected);
+});
 
 speedValue.textContent = `${Number(speedInput.value).toFixed(1)}×`;
 initializeVoiceCatalog();

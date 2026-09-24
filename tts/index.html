@@ -66,22 +66,24 @@
       <section class="card">
         <header class="output__header">
           <h2>Read a PDF</h2>
-          <p class="output__hint">Extract text, then read it aloud with the selected voice.</p>
+          <p class="output__hint">Preview on top · select text below · Ctrl+C to generate audio</p>
         </header>
-        <div class="drop" id="pdfDrop">
-          <p><strong>Drop a PDF here</strong> or click to browse</p>
-          <input type="file" id="pdfFile" accept="application/pdf,.pdf">
-        </div>
-        <div class="controls" style="margin-top:0.75rem">
-          <input type="text" id="pdfUrl" placeholder="…or paste a PDF URL (must allow CORS)" style="flex:1">
-          <button type="button" id="pdfUrlBtn">Load URL</button>
-        </div>
-        <div class="field" style="margin-top:0.75rem">
-          <span>Extracted text — edit it or select a part to read</span>
-          <textarea id="pdfText" rows="8" placeholder="PDF text appears here…"></textarea>
-        </div>
-        <div class="actions" style="margin-top:0.75rem">
-          <button type="button" id="pdfReadBtn" disabled>Read this text</button>
+        <div class="pdf-split">
+          <div class="pdf-preview">
+            <div class="drop" id="pdfDrop">
+              <p><strong>Drop a PDF here</strong> or click to browse</p>
+              <input type="file" id="pdfFile" accept="application/pdf,.pdf">
+            </div>
+            <div class="controls" style="margin-top:0.5rem">
+              <input type="text" id="pdfUrl" placeholder="…or paste a PDF URL (must allow CORS)" style="flex:1">
+              <button type="button" id="pdfUrlBtn">Load</button>
+            </div>
+            <div class="pdf-grid" id="pdfPages"></div>
+          </div>
+          <div class="field pdf-text">
+            <span>Text to synthesize — select a part and press Ctrl+C</span>
+            <textarea id="pdfText" placeholder="Extracted text appears here…"></textarea>
+          </div>
         </div>
       </section>
     </main>

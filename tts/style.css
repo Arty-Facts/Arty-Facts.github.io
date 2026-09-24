@@ -160,6 +160,57 @@ select {
   font-size: 0.9rem;
 }
 
+.pdf-split {
+  display: flex;
+  flex-direction: column;
+  height: 72vh;
+  gap: 0.75rem;
+}
+
+.pdf-preview {
+  flex: 1 1 70%;
+  overflow-y: auto;
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.pdf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.pdf-grid figure {
+  margin: 0;
+}
+
+.pdf-grid canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+  border-radius: 6px;
+}
+
+.pdf-grid figcaption {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+  text-align: center;
+}
+
+.pdf-text {
+  flex: 0 0 30%;
+  display: grid;
+  min-height: 0;
+}
+
+.pdf-text textarea {
+  height: 100%;
+  min-height: 0;
+}
+
 .drop {
   border: 2px dashed rgba(148, 163, 184, 0.4);
   border-radius: 14px;
