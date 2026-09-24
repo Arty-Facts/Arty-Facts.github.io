@@ -152,7 +152,7 @@
         <div class="meta" id="outMeta"></div>
         <div class="meta">
           Print button opens the booklet PDF in a new tab — press <strong>Ctrl+P</strong> there.
-          Duplex: <strong>flip on LONG edge</strong>. Cut each A4 horizontally across the middle,
+          Duplex: <strong>flip on LONG edge</strong>. Cut along the dashed line across the middle,
           stack the top half over the bottom half per sheet, in order.
         </div>
       </div>
@@ -194,6 +194,17 @@ function visualSize(page) {
   const rot = (page.getRotation().angle % 180 + 180) % 180;
   if (rot === 90 || rot === 270) [width, height] = [height, width];
   return { width, height };
+}
+
+function drawCutLine(page) {
+  page.drawLine({
+    start: { x: 0, y: HALF_H },
+    end: { x: A4_W, y: HALF_H },
+    thickness: 0.75,
+    color: PDFLib.rgb(0.55, 0.58, 0.62),
+    opacity: 0.85,
+    dashArray: [6, 4],
+  });
 }
 
 async function renderPdfPages(bytes, container, scale, labelFn) {
@@ -315,6 +326,9 @@ async function generate() {
     if (pc) front.drawPage(pc.emb, { x: pc.tx, y: pc.tyBottom, xScale: pc.s, yScale: pc.s });
     if (pb) back.drawPage(pb.emb, { x: pb.tx, y: pb.tyTop, xScale: pb.s, yScale: pb.s });
     if (pd) back.drawPage(pd.emb, { x: pd.tx, y: pd.tyBottom, xScale: pd.s, yScale: pd.s });
+
+    drawCutLine(front);
+    drawCutLine(back);
   }
 
   const outBytes = await out.save();
